@@ -70,7 +70,7 @@ script:
   - |
     if [[ "${TARGET}" = "curl" ]]; then
       ./configure --host=${HOST} --enable-static --disable-shared --prefix=$PWD/dist --disable-ldap
-      make && make install && cp COPYING $PWD/dist
+      make && make install-strip && cp COPYING $PWD/dist
     fi
   - |
     if [[ "${TARGET}" = "zlib" ]]; then
