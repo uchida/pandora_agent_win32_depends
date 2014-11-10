@@ -11,14 +11,14 @@ $ cd ${required_library}
 $ git checkout ${version}
 $ cd ..
 $ git commit ${required_library}
-$ git push origin master
+$ git push
 ```
 
 When Travis-CI pass build, push tags
 
 ```
 $ git tag ${release_tag}
-$ git push --tags origin master
+$ git push --tags
 ```
 
 After this push, Travis deploy the library to release page.
