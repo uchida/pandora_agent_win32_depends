@@ -1,35 +1,26 @@
 language: cpp
 env:
   matrix:
-    - TARGET=boost HOST=i586-mingw32msvc
     - TARGET=boost HOST=i686-w64-mingw32
     - TARGET=boost HOST=x86_64-w64-mingw32
-    - TARGET=openssl HOST=i586-mingw32msvc
     - TARGET=openssl HOST=i686-w64-mingw32
     - TARGET=openssl HOST=x86_64-w64-mingw32
-    - TARGET=curl HOST=i586-mingw32msvc
     - TARGET=curl HOST=i686-w64-mingw32
     - TARGET=curl HOST=x86_64-w64-mingw32
-    - TARGET=zlib HOST=i586-mingw32msvc
     - TARGET=zlib HOST=i686-w64-mingw32
     - TARGET=zlib HOST=x86_64-w64-mingw32
 compiler: gcc
 before_install:
   - sudo apt-get update -qq
   - |
-    if [[ "${HOST}" = "i586-mingw32msvc" ]]; then
-      sudo apt-get install -qq mingw32
-    fi
-  - |
     if [[ "${HOST}" = "i686-w64-mingw32" ]]; then
       sudo apt-get install -qq gcc-mingw-w64-i686 g++-mingw-w64-i686 binutils-mingw-w64-i686 mingw-w64-dev
+      export OPENSSL_TARGET=mingw
     fi
   - |
     if [[ "${HOST}" = "x86_64-w64-mingw32" ]]; then
       sudo apt-get install -qq gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-dev
       export OPENSSL_TARGET=mingw64
-    else
-      export OPENSSL_TARGET=mingw
     fi
   - unset CC
   - unset CXX
