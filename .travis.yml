@@ -1,0 +1,102 @@
+language: cpp
+env:
+  matrix:
+    - TARGET=boost HOST=i586-mingw32msvc
+    - TARGET=boost HOST=i686-w64-mingw32
+    - TARGET=boost HOST=x86_64-w64-mingw32
+    - TARGET=openssl HOST=i586-mingw32msvc
+    - TARGET=openssl HOST=i686-w64-mingw32
+    - TARGET=openssl HOST=x86_64-w64-mingw32
+    - TARGET=curl HOST=i586-mingw32msvc
+    - TARGET=curl HOST=i686-w64-mingw32
+    - TARGET=curl HOST=x86_64-w64-mingw32
+    - TARGET=zlib HOST=i586-mingw32msvc
+    - TARGET=zlib HOST=i686-w64-mingw32
+    - TARGET=zlib HOST=x86_64-w64-mingw32
+compiler: gcc
+before_install:
+  - sudo apt-get update -qq
+  - |
+    if [[ "${HOST}" = "i586-mingw32msvc" ]]; then
+      sudo apt-get install -qq mingw32
+    fi
+  - |
+    if [[ "${HOST}" = "i686-w64-mingw32" ]]; then
+      sudo apt-get install -qq gcc-mingw-w64-i686 g++-mingw-w64-i686 binutils-mingw-w64-i686 mingw-w64-dev
+    fi
+  - |
+    if [[ "${HOST}" = "x86_64-w64-mingw32" ]]; then
+      sudo apt-get install -qq gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-dev
+      export OPENSSL_TARGET=mingw64
+    else
+      export OPENSSL_TARGET=mingw
+    fi
+  - unset CC
+  - unset CXX
+  - pushd $TARGET
+  - |
+    if [[ "${TARGET}" = "boost" ]]; then
+      git submodule update --init --recursive
+    fi
+  - |
+    if [[ "${TARGET}" =~ boost|zlib ]]; then
+      pushd /usr/bin
+      test -e /usr/${HOST}/bin || sudo mkdir /usr/${HOST}/bin
+      for s in $(ls ${HOST}-*); do
+        t=$(echo $s|sed -e "s/${HOST}-//")
+        test -e /usr/${HOST}/bin/$t || sudo ln -s /usr/bin/$s /usr/${HOST}/bin/$t
+      done
+      popd
+    fi
+  - |
+    if [[ "${TARGET}" = "curl" ]]; then
+      ./buildconf
+    fi
+script:
+  - |
+    if [[ "${TARGET}" = "zlib" ]]; then
+      ./configure -static --prefix=/usr/${HOST}
+      env PATH="/usr/${HOST}/bin:$PATH" make -f win32/Makefile.gcc
+      mkdir -p $PWD/dist/{include,lib,bin}
+      cp {zlib,zconf}.h $PWD/dist/include && cp libz.{a,dll.a} $PWD/dist/lib && cp zlib1.dll $PWD/dist/bin
+    fi
+  - |
+    if [[ "${TARGET}" = "boost" ]]; then
+      ./bootstrap.sh --with-toolset=gcc
+      echo "using gcc : : ${HOST}-g++: <rc>${HOST}-windres <archiver>${HOST}-ar;" > user-config.jam
+      ./b2 --layout=tagged --prefix=$PWD/dist headers
+      env PATH="/usr/${HOST}/bin:$PATH" ./b2 toolset=gcc target-os=windows variant=release threading=multi threadapi=win32 link=static runtime-link=static --with-regex -sNO_BZIP2=1 --layout=tagged --prefix=$PWD/dist install && cp LICENSE*.txt $PWD/dist
+    fi
+  - export CC=/usr/bin/${HOST}-gcc
+  - export CXX=/usr/bin/${HOST}-g++
+  - export RANLIB=/usr/bin/${HOST}-ranlib
+  - export AR=/usr/bin/${HOST}-ar r
+  - |
+    if [[ "${TARGET}" = "openssl" ]]; then
+      ./Configure --openssldir=$PWD/dist ${OPENSSL_TARGET}
+      make && make install && cp LICENSE $PWD/dist
+    fi
+  - |
+    if [[ "${TARGET}" = "curl" ]]; then
+      ./configure --host=${HOST} --enable-static --disable-shared --prefix=$PWD/dist --disable-ldap
+      make && make install && cp COPYING $PWD/dist
+    fi
+  - |
+    if [[ "${TARGET}" = "zlib" ]]; then
+        RELEASE="zlib-$(git tag --points-at HEAD|tail -n 1)"
+    else
+        RELEASE="$(git tag --points-at HEAD|tail -n 1)"
+    fi
+  - tar zcf ../${RELEASE}-${HOST}.tar.gz -C $PWD/dist .
+  - popd
+deploy:
+  edge: true
+  provider: releases
+  api_key:
+    secure: debm4D5g0Zn1R57DoftRz9hezw7DgpgNCsqCodFWIRxNCAW5vHyvecrAko6eFZwBPZ6/JMmh2Fk5Th6Sa/L4S+MF3Q6Uug3QiE7KxecMPvViDhNaYeUiP7xs3f4XkS2UhIW2nj2Vlgk3slfY8oljbMtRtJUj9j963tV3NgOgl9s=
+  file:
+    - ${RELEASE}-${HOST}.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true

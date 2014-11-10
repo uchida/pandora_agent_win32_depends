@@ -1,0 +1,12 @@
+[submodule "boost"]
+	path = boost
+	url = https://github.com/boostorg/boost.git
+[submodule "curl"]
+	path = curl
+	url = https://github.com/bagder/curl.git
+[submodule "openssl"]
+	path = openssl
+	url = https://github.com/openssl/openssl.git
+[submodule "zlib"]
+	path = zlib
+	url = https://github.com/madler/zlib.git
