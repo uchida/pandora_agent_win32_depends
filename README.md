@@ -1,6 +1,10 @@
 Libraries for building PandoraAgent for Windows
 ===============================================
 
+[![Build Status]
+(https://travis-ci.org/uchida/pandora_agent_win32_depends.svg?branch=master)]
+(https://travis-ci.org/uchida/pandora_agent_win32_depends)
+
 A collection of libraries required to build PandoraAgent for Windows.
 When git tag has pushed [Travis CI](http://travis-ci.org) deploy libraries.
 
