@@ -1,10 +1,10 @@
-Libraries required to build PandoraAgent for Windows
-====================================================
+Libraries for building PandoraAgent for Windows
+===============================================
 
 A collection of libraries required to build PandoraAgent for Windows.
-When git tag has pushed travis-ci deploy the libraries to release page
+When git tag has pushed [Travis CI](http://travis-ci.org) deploy libraries.
 
-when you want to build ${version} for ${required_library}
+when one want to build the specific version: ${version} of ${required_library}
 
 ```
 $ cd ${required_library}
